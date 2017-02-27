@@ -1,0 +1,72 @@
+---
+title: "R changepoint"
+runtime: shiny
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##
+
+This is a document studying the features of R package `changepoint`.
+
+
+In general, we consistently use function `cpt.mean` and method `PELT`to automatically detect all possible change points in data. 
+
+```{r, echo=FALSE}
+hr()
+  fluidRow(
+    column(2, numericInput("penalty","Penalty value",value = 10 ,min=0.1,max=10,step = 0.1)),
+    
+    column(2, numericInput("segments","Segments",value = 4 ,min= 2,max=20,step = 1)),
+    column(2, numericInput("difference","Difference",value = 10 ,min= 2,max=100,step = 1)),
+
+    column(2, numericInput("n","Segment size",value = 50 ,min= 2,max=2000,step = 1)),
+    column(2, selectInput("dist","Distribution",choices = c("Normal","Poisson"))),
+    column(2, selectInput("random","Random",choices = c("Fix seed"=1,"Random seed"=2), selected = 2))
+    
+  )
+  div(style="font-size:10px",
+  fluidRow(
+    column(2, "The tuning parameter"),
+    
+    column(2, "Number of change points + 1)"),
+    column(2, "Extent to which each segment can be different from each other"),
+
+    column(2, "Points generated in each segment"),
+    column(2,""),
+    column(2, actionButton("ok","Refresh"))
+  )
+  )
+```
+
+```{r, echo = FALSE}
+renderPlot({
+  #set.seed(123)
+  input$ok
+  if(input$random==1) seed = 123 else seed = rpois(1,10000)
+  set.seed(seed)
+  series = numeric()
+
+  for(i in 1:input$segments){
+    tmp = if(input$dist == "Normal"){
+      rnorm(input$n, rpois(1,input$difference),2)
+    } else {
+      rpois(input$n, rpois(1,input$difference))
+    }
+    series = c(series, tmp)
+  }
+  vlines = (1:input$segments)*input$n
+  plot(series,type="l")
+  abline(v=vlines, lty=2, col = "red")
+  
+  library(changepoint)
+  penalty = paste0(input$penalty,"*log(n)")
+  cpt = cpt.mean(series, method = "PELT", penalty = "Manual", pen.value = penalty)
+  plot(cpt,ylab=NULL,col="blue")
+  abline(v=vlines, lty=2, col = "red")
+
+})
+```
