@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ##
 
-This is a document studying the features of R package `changepoint`.
+This is a document exploring the features of R package `changepoint`.
 
 
 In general, we consistently use function `cpt.mean` and method `PELT`to automatically detect all possible change points in data. 
